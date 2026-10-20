@@ -17,42 +17,46 @@ pipeline {
             }
         }
 
+        stage('Check Environment') {
+            steps {
+                bat 'node --version'
+                bat 'npm --version'
+            }
+        }
+
         stage('Install Dependencies') {
             steps {
-                sh 'npm ci'
+                bat 'npm ci'
             }
         }
 
         stage('Install Playwright Browsers') {
             steps {
-                sh 'npx playwright install --with-deps'
+                bat 'npx playwright install chromium firefox webkit'
             }
         }
 
         stage('Run Playwright Tests') {
             steps {
-                sh 'npx playwright test'
+                bat 'npx playwright test'
             }
         }
     }
 
     post {
         always {
-            // Publish JUnit test results
             junit(
                 testResults: 'test-results/e2e-results.xml',
                 allowEmptyResults: true
             )
 
-            // Archive reports and test artifacts
             archiveArtifacts(
-                artifacts: 'playwright-report/**, test-results/**, test-results/e2e-results.xml',
+                artifacts: 'playwright-report/**, test-results/**',
                 allowEmptyArchive: true
             )
 
-            // Publish HTML report
             publishHTML(target: [
-                reportName: 'Playwright Report',
+                reportName: 'Playwright HTML Report',
                 reportDir: 'playwright-report',
                 reportFiles: 'index.html',
                 keepAll: true,
